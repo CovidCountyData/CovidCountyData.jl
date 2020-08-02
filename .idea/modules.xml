@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CMDC.jl.iml" filepath="$PROJECT_DIR$/.idea/CMDC.jl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CovidCountyData.jl.iml" filepath="$PROJECT_DIR$/.idea/CovidCountyData.jl.iml" />
     </modules>
   </component>
 </project>

@@ -1,323 +1,244 @@
-# CMDC.jl
+# covidcountydata
 
-Welcome to the Julia client library for accessing the COVID Modeling Data Collaborative (CMDC) database.
+Welcome to the Julia client library documentation for the [Covid County Data](https://covidcountydata.org) (CCD) database.
 
-Links:
 
-- [Repository](https://github.com/valorumdata/CMDC.jl)
-- [Website](https://covid.valorum.ai/)
-- [Python](https://github.com/valorumdata/cmdc.py) and [R](https://github.com/valorumdata/cmdcR) clients
-- [Raw REST API](https://covid.valorum.ai/rest-api)
-- [GraphQL API](https://covid.valorum.ai/graphql-api)
+## Installation
 
-## COVID Modeling Data Collaborative
+Install the CovidCountyData package from Julia pkg mode as follows:
 
-The COVID Modeling Data Collaborative (CMDC) is a project funded by [Schmidt Futures](https://schmidtfutures.com/) and seeks to simplify the data ingestion process for researchers and policy makers who are working to enact and understand COVID-19 related policies. We accomplish this goal in several ways:
-
-- Collect unique, hard-to-acquire, datasets that are not widely distributed
-- Aggregate data collected by other related organizations into a centralized database
-- Work with other related organizations to expand and improve their data collection processes
-- Build tools, such as this library (and [Python](https://github.com/valorumdata/cmdc.py) and [R](https://github.com/valorumdata/cmdcR) equivalents), to simplify the data ingestion process
-
-More information about our project and what data is collected can be found on our [website](https://covid.valorum.ai/).
-
-We are always looking to hear from both those who would like to help us build CMDC and those who would like use CMDC. [Please reach out to us](https://covid.valorum.ai/contact)!
-
-## Install
-
-Enter package mode (using `]`) and then input `add https://github.com/valorumdata/CMDC.jl`
-
-
-## Datasets
-
-You can see a list of currently available datasets using:
-
-```
-julia> CMDC.datasets()
-8-element Array{Symbol,1}:
- :states
- :counties
- :covid_historical
- :covid
- :demographics
- :mobility_locations
- :economics
- :mobility_devices
-```
-
-Each dataset has an associated function
-
-You can get detailed information on a specific dataset using `?`. For example
-
-```
-help?> demographics
-  CMDC endpoint demographics
-
-  Currently, the following variables are collected in the database
-
-    •    Total population
-
-    •    Median age
-
-    •    Fraction of the population over 65
-
-    •    Fraction of the population who identify as various races or as Hispanic/Latino
-
-    •    Fraction of the population with various degrees of education
-
-    •    Fraction of the population that commutes in various ways
-
-    •    Mean travel time to work (minutes)
-
-    •    Median household income
-
-    •    Mean household income
-
-    •    Fraction of the (civilian) population with/without health insurance
-
-    •    Fraction of families who had an income less than poverty level in the last year
-
-  These variables are collected from the 2018 American Community Survey (5 year) in order to ensure that we have data for each county. Please note that we are willing (and easily able!) to add other years or variables if there is interest –- The variables that we
-  do include are because people have asked about them.
-
-  Source(s):
-
-  US Census American Community Survey (https://www.census.gov/programs-surveys/acs)
-
-  Available filters are: meta_date, fips, variable, value, select, order, offset and limit
-
-  Set any filter as keyword argument to demographics() function
-```
-
-## Requesting Data
-
-Requesting a dataset has three parts:
-
-1. Create a client
-2. Build a request with desired datasets
-3. `fetch` the datasets
-
-### 1. Create a client
-
-To create a client, use the `Client` function
-
-```
-julia> c = Client()
-CMDC Client
-
-julia>
-```
-
-You can optionally pass in an API key if you have one (see section on API keys below)
-
-```
-julia> c = Client(apikey="my api key")
-CMDC Client
-
-julia>
-```
-
-If you have previously registered for an API key (again, see below) on your current machine, it will be loaded and used automatically for you
-
-In practice you should rarely need to use the `apikey` argument unless you are loading the key from an environment variable or other source
-
-### 2. Build a request
-
-Each of the datasets in the API have an associated function
-
-To add datasets to the current request, you use the `request(::Client, ::dataset...)` function
-
-```
-julia> request!(c, covid(state=6))
-CMDC Client. Current request:
- - covid
-  - state: 6
-
-
-julia> request!(c, demographics())
-CMDC Client. Current request:
- - demographics
- - covid
-  - state: 6
-
-
-julia> c
-CMDC Client. Current request:
- - demographics
- - covid
-  - state: 6
-
-
-julia>
-```
-
-`request!` will build up a request for the `Client` and will return the `Client` itself.
-
-You can see that the printed form of the `Client` is updated to show you what the current request looks like
-
-To clear the current request, use `reset!(::Client)`:
-
-```
-julia> reset!(c); c
-CMDC Client
-
-julia>
-```
-
-Multiple datasets can be addded in one call to `request!`
-
-```
-julia> request!(c, demographics(), covid(fips="<100"))
-CMDC Client. Current request:
- - demographics
- - covid
-  - fips: <100
-
-
-julia>
-```
-
-#### Filtering data
-
-Each of the dataset functions has a number of filters that can be applied
-
-This allows you to select certain rows and/or columns
-
-For example, in the above example we had `covid(fips="<100")`. This instructs the client to only fetch data for US fips codes less than 100, which would be all US states and territories.
-
-Refer to the help/documentation for each dataset's function for more information on which filters can be passed
-
-Also, check out the `examples.jl` file for more examples
-
-**NOTE:** If a filter is passed to one dataset in the request but is applicable to other datasets in the request, it will be applied to *all* datasets
-
-For example in `request!(c, demographics(), covid(fips="<100"))` we only specifcy a `fips` filter on the `covid` dataset
-
-However, when the data is collected it will also be applied to `demographics`
-
-We do this because we end up doing an inner join on all requested datasets, so when we filter the fips in `covid` they also get filtered in `demographics`
-
-### 3. Fetch the data
-
-Now for the easy part!
-
-When you are ready with your current
-
-To fetch the data, call the `fetch` function on the client:
-
-```
-julia> df = fetch(c)
-4963×39 DataFrames.DataFrame. Omitted printing of 36 columns
-│ Row  │ fips  │ Fraction of population over 65_2018-01-01 │ Mean household income_2018-01-01 │
-│      │ Int64 │ Union{Missing, Float64}                   │ Union{Missing, Float64}          │
-├──────┼───────┼───────────────────────────────────────────┼──────────────────────────────────┤
-│ 1    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 2    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 3    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 4    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 5    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 6    │ 1     │ 17.0                                      │ 69091.0                          │
-│ 7    │ 1     │ 17.0                                      │ 69091.0                          │
-⋮
-│ 4956 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4957 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4958 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4959 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4960 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4961 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4962 │ 56    │ 16.7                                      │ 81935.0                          │
-│ 4963 │ 56    │ 16.7                                      │ 81935.0                          │
-
-julia> names(df)
-39-element Array{String,1}:
- "fips"
- "Fraction of population over 65_2018-01-01"
- "Mean household income_2018-01-01"
- "Mean travel time to work (minutes)_2018-01-01"
- "Median age_2018-01-01"
- "Median household income_2018-01-01"
- "Percent Asian_2018-01-01"
- "Percent Hispanic/Latino (any race)_2018-01-01"
- "Percent Native American or Alaska Native_2018-01-01"
- ⋮
- "Total population_2018-01-01"
- "vintage"
- "dt"
- "deaths_total"
- "hospital_beds_in_use_covid_total"
- "icu_beds_in_use_covid_total"
- "negative_tests_total"
- "positive_tests_total"
- "ventilators_in_use_covid_total"
-
-julia>
-```
-
-Notice that after each successful request, the client is reset so there are no "built-up" requests:
-
-```
-julia> c
-CMDC Client
-
-julia>
+```julia
+(@v1.5) pkg> add https://github.com/CovidCountyData/CovidCountyData.jl
 ```
 
 ## API keys
 
-Our API is and always will be free for unlimited public use
+Our data is free and open for anyone to use (and always will be). Our team agreed that this was
+central to our mission when we agreed to begin this project. However, we do find it useful to
+have information about our users and to see how they use the data for two reasons:
 
-We have an API key system in place to help us understand the needs of our users
+1. It helps us focus and improve the datasets that are seeing the most use.
+2. The number of users, as measured by active API keys, is one metric that we use to show that the
+   project is useful when we are discussing additional grant funding.
 
-We kindly reqeust that you register for an API key so we can understand how to prioritize future work
+We are grateful to everyone who is willing to register for and use their API key when interacting
+with our data.
 
-In order to do so, you can use the `register` function
+To register for an API key, you can register [on our website](https://covidcountydata.org#register)
+or from the Julia package using the `register` method.
 
-```
-julia> c = Client()
-CMDC Client
+```julia
+using CovidCountyData
 
-julia> ismissing(c.apikey)
-true
-
-julia> c = register(c)
-Please provide an email address to request a free API key: me@test.com
-email = readline(stdin) = "me@test.com"
-The API key has been reqeusted and will be used on all future requests unless another key is given when creating a Client.
-CMDC Client
-
-julia> ismissing(c.apikey)
-false
-
-julia>
+c = Client()
+register(c)
 ```
 
-Notice that the `register` function will prompt you to input an email address AND will return a _new_ instance of `Client`
+You will be prompted for your email address. After entering a valid email address we will issue
+an API key, store it on your machine, and automatically apply it to all future requests made from
+this package to our servers.
 
-This new `Client` will have the apikey set
+If at any time you would like to remove your API key, please delete the file `~/.covidcountydata/apikey`.
 
-Note that if you prefer, you can pass the email address as the second argument and you will not be prompted:
 
+## Data
+
+
+### Datasets
+
+You can see a list of the available datasets in our API from the Julia library by doing:
+
+```julia
+using CovidCountyData
+
+println(datasets())
 ```
-julia> c = register(c, "me@test.com")
-The API key has been reqeusted and will be used on all future requests unless another key is given when creating a Client.
-CMDC Client
 
-julia> ismissing(c.apikey)
-false
+For more information on each of these datasets, we recommend that you visit our
+[data documentation page](https://covidcountydata.org/data-api#rest).
 
-julia>
+
+### Data keys
+
+Many of the datasets in our database are indexed by one or more common "keys". These keys are:
+
+- `vintage`: The date and time that the data was downloaded into our database. We collect this
+  because of the rapidly evolving nature of COVID-19 -- It allows us to have a record of when data was
+  changed/corrected/updated.
+- `dt`: The date and time that an observation corresponds to. For series like COVID tests
+  administered this may a daily frequency, but, for others like unemployment it may be a weekly or
+  monthly frequency.
+- `location`: A geographic identifier for the location. For the counties/states in the dataset,
+  this variable corresponds to the Federal Information Processing Standards number.
+
+Whenever two series with common keys are loaded together, they will be merged on their common keys.
+
+
+### Requesting data
+
+Requesting data using the Julia client library involves three steps:
+
+
+#### 1. Create a client
+
+To create a client, use the `Client` class.
+
+```julia
+using CovidCountyData
+
+c = Client()
 ```
 
-After you `register` for an API key, we save the key to a file at `~/.cmdc/apikey`
+You can optionally pass in an API key if you have one (see the section on API keys).
 
-Each time you instantiate a `Client` and do not explicitly pass an apikey (via keyword argument), we will check this file and extract the key if it exists
+```julia
+c = Client("my api key")
+```
 
-Thus, to use the key in future sesions you just need to do `c = Client()` and we'll handle the key for you!
+If you have previously registered for an API key on your current machine, it will be loaded and
+used automatically for you.
 
-## Final thoughts
+In practice you should rarely need to pass the API key by hand unless you are loading the key from
+an environment variable or another source.
 
-Due to the urgency of the COVID-19 crisis and the need for researchers, modelers, and policy makers to have accurate data quickly, this project moves fast!
 
-We have created this library so that as we add new datasets to our backend, they automatically appear here and are accessible via this library
+#### 2. Build a request
 
-Please check back often and see what has been updated
+Each of the datasets in the API have an associated method.
+
+To add datasets to the current request, call `request!(::Client, dataset())`. For example, to add
+the `covid_us` dataset to the request, you would call:
+
+```julia
+request!(c, covid_us(location=6))
+```
+
+If you wanted to add another dataset, such as `demographics`, you would call `request!` again:
+well.
+
+```julia
+request!(c, demographics())
+```
+
+You can see that the printed form of the client is updated to show you what the current request
+looks like by printing the current client.
+
+```julia
+c
+```
+
+To clear the current request, use `reset!(c)`:
+
+Multiple datasets can be addded in one call to `request!`, which can clean up code in some situations. For example, the calls to `covid_us` and `demographics` could have been written 
+
+```julia
+request!(c, demographics(), covid_us(location=6))
+```
+
+The order of the requests does not matter and will not change the dataset you ultimately end up with.
+
+**Filtering data**
+
+Each of the dataset functions has a number of filters that can be applied.
+
+These filters allow you to select certain rows and/or columns.
+
+For example, in the above example we had `covid_us(location=6)`. This instructs the client to
+only fetch data for geographic regions that are in the state of California.
+
+**NOTE:** If a filter is passed to one dataset in the request but is applicable to other datasets
+in the request, it will be applied to *all* datasets.
+
+For example in `request!(c, demographics(), covid_us(location=6))` we only specify a `location` filter on the
+`covid_us` dataset, but when the data is collected it will also be applied to `demographics`.
+
+We do this because we end up doing an inner join on all requested datasets, so when we filter the
+state in `covid_us` they also get filtered in `demographics`.
+
+
+#### 3. Fetch the data
+
+To fetch the data, call the `fetch` method from the client.
+
+```julia
+df = fetch(c)
+```
+
+Note that after a successfully request, the client is reset so there are no "built-up" requests
+remaining.
+
+
+
+## Examples
+
+We provide a few simple examples here in the README, but you can find additional examples in the `examples.jl` file.
+
+**Simple Example: Single dataset for all FIPS**
+
+The example below loads all within county mobility data.
+
+```julia
+using CovidCountyData
+c = Client()
+
+request!(c, mobility_devices())
+df = fetch(c)
+```
+
+
+**Simple Example: Single dataset for single county**
+
+The example below loads just demographic information for Travis County in Texas.
+
+Notice that we can select a particular geography by specifying the fips code using the `location` keyword.
+
+```julia
+c = Client()
+request!(c, demographics(location=48453))
+df = fetch(c)
+```
+
+
+**Simple Example: Single dataset for all states**
+
+The example below loads demographic information for all counties in Texas.
+
+```julia
+c = Client()
+request!(c, demographics(location="<100"))
+df = fetch(c)
+```
+
+**Intermediate Example: Multiple datasets for single county**
+
+The example below loads covid and demographic data and showcases how to request multiple datasets together. It will automatically merge and return these datasets.
+
+Note that applying a filter to any of the datasets (in this case `location=6037`) will apply it to all datasets.
+
+```julia
+c = Client()
+request!(
+    c,
+    covid_us(location=6037),
+    demographics(),
+)
+df = fetch(c)
+```
+
+
+**Advanced Example: Multiple datasets with multiple filters and variable selection**
+
+The example below loads data from three datasets for a particular FIPS code, using a particular date of demographics, and selects certain variables from the datasets.
+
+```julia
+c = Client()
+request!(
+    c,
+    economic_snapshots(variable="GDP_All industry total"),
+    covid_us(location=6037),
+    demographics(variable="Total population"),
+)
+df = fetch(c)
+```
+
+There are more examples in the [`examples.jl`](https://github.com/CovidCountyData/CovidCountyData.jl/blob/master/examples.jl) file. We encourage you to explore them and to reach out if you have questions!

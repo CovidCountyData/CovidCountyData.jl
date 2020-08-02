@@ -1,4 +1,4 @@
-_keyfile() = joinpath(homedir(), ".CovidCountyData", "apikey")
+_keyfile() = joinpath(homedir(), ".covidcountydata", "apikey")
 
 """
 
@@ -191,7 +191,7 @@ function _reshape_df(df::DataFrames.DataFrame)
     cols = map(String, names(df))
     for c in ["variable", "value"]
         if !(c in cols)
-            gh_issues = "https://github.com/valorumdata/CovidCountyData.jl/issues/new"
+            gh_issues = "https://github.com/CovidCountyData/CovidCountyData.jl/issues/new"
             msg = "Column $c not found, please report a bug at $gh_issues"
             error(msg)
         end

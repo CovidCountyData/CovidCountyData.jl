@@ -6,7 +6,7 @@ using Parameters: @with_kw
 # other functions/types are exported from __init__()
 export Client, request!, reset!, register
 
-const BASE_URL = "https://api.covid.valorum.ai"
+const BASE_URL = "https://api.covidcountydata.org"
 _url(x::Union{Symbol,String}) = string(BASE_URL, "/", x)
 const _counties = Ref(DataFrames.DataFrame())
 
