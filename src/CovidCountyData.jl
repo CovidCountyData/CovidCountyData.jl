@@ -1,4 +1,4 @@
-module CMDC
+module CovidCountyData
 
 import HTTP, JSON, CSV, DataFrames
 using Parameters: @with_kw
@@ -40,7 +40,7 @@ function __init__()
     _counties[] = fetch(Client(), "us_counties")
     _counties[][!, :state] = map(
         x -> parse(Int, lpad(x, 5, '0')[1:2]),
-        CMDC._counties[][!, :location]
+        CovidCountyData._counties[][!, :location]
     )
     nothing
 

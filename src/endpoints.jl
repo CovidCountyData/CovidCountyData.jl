@@ -60,7 +60,7 @@ end
 function make_endpoint_docs(fn::Symbol, sw::Dict, )
     desc = get(sw["paths"][string("/", fn)]["get"], "description", missing)
     docs = IOBuffer()
-    println(docs, "CMDC endpoint $fn\n")
+    println(docs, "CovidCountyData endpoint $fn\n")
     if !ismissing(desc)
         println(docs, desc)
         println(docs, "")

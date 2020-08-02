@@ -1,4 +1,4 @@
-using CMDC
+using CovidCountyData
 
 
 c = Client()

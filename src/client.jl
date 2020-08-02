@@ -1,4 +1,4 @@
-_keyfile() = joinpath(homedir(), ".cmdc", "apikey")
+_keyfile() = joinpath(homedir(), ".CovidCountyData", "apikey")
 
 """
 
@@ -34,7 +34,7 @@ end
 reset!(c::Client) = empty!(c.current_request)
 
 function Base.show(io::IO, ::MIME"text/plain", c::Client)
-    print(io, "CMDC Client")
+    print(io, "CovidCountyData Client")
     length(c.current_request) > 0 && println(io, ". Current request:")
     for (k, v) in c.current_request
         print(io, " - ")
@@ -191,7 +191,7 @@ function _reshape_df(df::DataFrames.DataFrame)
     cols = map(String, names(df))
     for c in ["variable", "value"]
         if !(c in cols)
-            gh_issues = "https://github.com/valorumdata/CMDC.jl/issues/new"
+            gh_issues = "https://github.com/valorumdata/CovidCountyData.jl/issues/new"
             msg = "Column $c not found, please report a bug at $gh_issues"
             error(msg)
         end
@@ -254,7 +254,7 @@ function Base.fetch(c::Client, path::Union{Symbol,String}; query=Dict())
 end
 
 function _handle_state(states::AbstractVector{<:Integer})
-    want = map(x -> in(x, states), CMDC._counties[][!, :state])
+    want = map(x -> in(x, states), CovidCountyData._counties[][!, :state])
     return vcat(collect(_counties[][want, :location]), states...)
 end
 _handle_state(state::Integer) = _handle_state([state])

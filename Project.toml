@@ -1,5 +1,5 @@
-name = "CMDC"
-uuid = "2a7f7b87-7961-4068-ab29-b8c7bac6b897"
+name = "CovidCountyData"
+uuid = "d535a29f-5bd8-47ef-b707-5c9b29bcede6"
 authors = ["Spencer Lyon <spencerlyon2@gmail.com>"]
 version = "0.1.0"
 
