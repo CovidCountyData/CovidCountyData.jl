@@ -1,4 +1,4 @@
-# covidcountydata
+# CovidCountyData.jl
 
 Welcome to the Julia client library documentation for the [Covid County Data](https://covidcountydata.org) (CCD) database.
 
