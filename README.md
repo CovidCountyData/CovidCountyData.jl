@@ -55,7 +55,7 @@ println(datasets())
 ```
 
 For more information on each of these datasets, we recommend that you visit our
-[data documentation page](https://covidcountydata.org/data-api#rest).
+[data documentation page](https://covidcountydata.org/data/documentation).
 
 
 ### Data keys
