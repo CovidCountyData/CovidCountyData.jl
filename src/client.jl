@@ -216,7 +216,7 @@ input frames and then merging on common columns
 """
 function combine_dfs(dfs::Dict{Symbol,DataFrames.DataFrame})
     # reshape
-    reshaped = [_reshape_df(df) for df in values(dfs)]
+    reshaped = [path === :covid_sources ? df : _reshape_df(df) for (path, df) in dfs]
 
     # then join on common columns
     out = reshaped[1]
@@ -230,6 +230,9 @@ end
 "Execute currently built request"
 function Base.fetch(c::Client)
     filts = combine_filters(c)
+    if :covid_sources in keys(filts) && length(filts) > 1
+        error("`covid_sources` endpoint cannot be combined with any other endpoints")
+    end
     transformed_filts = Dict(
         path => Dict(
             nm => create_filter_rhs(v) for (nm, v) in p_filts
