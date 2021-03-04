@@ -21,9 +21,6 @@ have information about our users and to see how they use the data for two reason
 2. The number of users, as measured by active API keys, is one metric that we use to show that the
    project is useful when we are discussing additional grant funding.
 
-We are grateful to everyone who is willing to register for and use their API key when interacting
-with our data.
-
 To register for an API key, you can register [on our website](https://covidcountydata.org#register)
 or from the Julia package using the `register` method.
 
@@ -39,6 +36,8 @@ an API key, store it on your machine, and automatically apply it to all future r
 this package to our servers.
 
 If at any time you would like to remove your API key, please delete the file `~/.covidcountydata/apikey`.
+
+**Update March 4, 2021**: API keys are now required for data access
 
 
 ## Data
